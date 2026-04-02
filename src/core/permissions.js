@@ -7,6 +7,28 @@ export const PERMISSION_DEFS = {
   clipboard:   { key: 'clipboard-read',   icon: '◧', labelKey: 'permissions.clipboard',  reasonKey: 'permissions.clipReason',    how: 'clipboard'    },
 }
 
+const STORAGE_KEY = 'perm_toggles'
+
+function getToggles() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {} } catch { return {} }
+}
+
+export function isPermissionEnabled(permKey) {
+  const toggles = getToggles()
+  return toggles[permKey] !== false
+}
+
+export function togglePermission(permKey, enabled) {
+  const toggles = getToggles()
+  toggles[permKey] = enabled
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(toggles))
+  return enabled
+}
+
+export function getPermissionToggles() {
+  return getToggles()
+}
+
 export async function check(permKey) {
   const def = Object.values(PERMISSION_DEFS).find(d => d.key === permKey)
   if (!def) return 'unknown'

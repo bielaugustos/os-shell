@@ -6,9 +6,30 @@ import { useWindowManager } from './hooks/useWindowManager'
 import { APP_REGISTRY, getApp } from './config/appRegistry'
 import { PERIODS } from './config/theme'
 import './config/i18n'
+import { 
+  RiHome4Line,
+  RiTimeLine,
+  RiFileTextLine,
+  RiCalculatorLine,
+  RiBuilding2Line,
+  RiSettings3Line,
+} from '@remixicon/react'
 
-/* ── Top bar ───────────────────────────────────────────────── */
-function TopBar({ period }) {
+function getIconForId(id) {
+  switch(id) {
+    case 'home': return RiHome4Line
+    case 'clock': return RiTimeLine
+    case 'notes': return RiFileTextLine
+    case 'calculator': return RiCalculatorLine
+    case 'tower': return RiBuilding2Line
+    case 'settings': return RiSettings3Line
+    default: return null
+  }
+}
+
+/* ── Top bar ─────────────────────────────────────────────────── */
+function TopBar({ period, onToggleMenu, menuOpen }) {
+  const { t, i18n } = useTranslation()
   const [time, setTime] = React.useState(new Date())
   const [online, setOnline] = React.useState(navigator.onLine)
 
@@ -33,12 +54,90 @@ function TopBar({ period }) {
       backdropFilter:'blur(12px)', WebkitBackdropFilter:'blur(12px)',
     }}>
       <div style={{ display:'flex', alignItems:'center', gap:14 }}>
-        <div style={{ display:'flex', gap:6 }}>
-          {['#ff5f57','#ffbd2e','#28ca41'].map((c,i) => (
-            <div key={i} style={{ width:12, height:12, borderRadius:'50%', background:c, cursor:'pointer' }} />
-          ))}
-        </div>
-        <span style={{ fontFamily:'Syne', fontSize:13, fontWeight:600, color:'var(--text-pri)', letterSpacing:'.3px' }}>OS Shell</span>
+        <button onClick={onToggleMenu} style={{
+          background:'none', border:'none', cursor:'pointer',
+          color:'var(--text-sec)', padding:6,
+          display:'flex', alignItems:'center', justifyContent:'center',
+          transition:'color .15s',
+          fontSize: 20,
+          fontFamily: 'inherit',
+          position:'relative',
+          width: 28,
+          height: 28,
+        }}
+          onMouseEnter={e => e.currentTarget.style.color = 'var(--text-pri)'}
+          onMouseLeave={e => e.currentTarget.style.color = 'var(--text-sec)'}
+        >
+          <span className={`hamburger-line ${menuOpen ? 'open' : ''}`} style={{
+            position:'absolute',
+            width: 18,
+            height: 2,
+            background:'currentColor',
+            borderRadius: 1,
+            transition:'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          }} />
+          <span className={`hamburger-line ${menuOpen ? 'open' : ''}`} style={{
+            position:'absolute',
+            width: 18,
+            height: 2,
+            background:'currentColor',
+            borderRadius: 1,
+            transition:'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          }} />
+          <span className={`hamburger-line ${menuOpen ? 'open' : ''}`} style={{
+            position:'absolute',
+            width: 18,
+            height: 2,
+            background:'currentColor',
+            borderRadius: 1,
+            transition:'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          }} />
+          <span className={`close-icon ${menuOpen ? 'open' : ''}`} style={{
+            position:'absolute',
+            width: 20,
+            height: 20,
+            opacity: menuOpen ? 1 : 0,
+            transform: menuOpen ? 'rotate(0deg) scale(1)' : 'rotate(-90deg) scale(0)',
+            transition:'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            fontSize: 20,
+            lineHeight: '20px',
+            display:'flex',
+            alignItems:'center',
+            justifyContent:'center',
+          }}>
+            ✕
+          </span>
+          <style>{`
+            .hamburger-line:nth-child(1) {
+              top: 8px;
+              transform-origin: center;
+            }
+            .hamburger-line:nth-child(2) {
+              top: 50%;
+              transform: translateY(-50%);
+              transform-origin: center;
+            }
+            .hamburger-line:nth-child(3) {
+              bottom: 8px;
+              transform-origin: center;
+            }
+            .hamburger-line.open:nth-child(1) {
+              top: 50%;
+              transform: translateY(-50%) rotate(45deg);
+            }
+            .hamburger-line.open:nth-child(2) {
+              opacity: 0;
+              transform: translateY(-50%) scaleX(0);
+            }
+            .hamburger-line.open:nth-child(3) {
+              bottom: 50%;
+              transform: translateY(50%) rotate(-45deg);
+            }
+            .close-icon.open {
+              transform: rotate(0deg) scale(1);
+            }
+          `}</style>
+        </button>
       </div>
 
       <div style={{ fontFamily:'DM Mono', fontSize:13, color:'var(--text-ter)' }}>
@@ -47,71 +146,169 @@ function TopBar({ period }) {
 
       <div style={{ display:'flex', alignItems:'center', gap:14, fontSize:12, color:'var(--text-ter)' }}>
         <span style={{ color: online ? 'var(--accent)' : 'var(--text-ter)', fontSize:10 }}>◉</span>
-        <span>{period.label?.en ?? period.name}</span>
+        <span>{period.label?.[i18n.language] ?? period.label?.en ?? period.name}</span>
         <span style={{ fontSize:11 }}>{dateStr}</span>
       </div>
     </div>
   )
 }
 
-/* ── Sidebar ───────────────────────────────────────────────── */
-function Sidebar({ activeApp, onNavigate, period, onThemeOverride }) {
-  const { t } = useTranslation()
+/* ── Horizontal Menu ─────────────────────────────────────────── */
+function HorizontalMenu({ activeApp, onNavigate, menuOpen, period, onThemeOverride }) {
+  const { t, i18n } = useTranslation()
+  const lang = i18n.language
+  const [menuOrder, setMenuOrder] = React.useState(() => {
+    const saved = localStorage.getItem('menuOrder')
+    if (saved) {
+      return JSON.parse(saved)
+    }
+    return ['home', ...APP_REGISTRY.map(a => a.id)]
+  })
+  const [draggedItem, setDraggedItem] = React.useState(null)
+  const [isDragging, setIsDragging] = React.useState(false)
+  const dragStartPos = React.useRef({ x: 0, y: 0 })
+
+  const handleDragStart = (e, itemId) => {
+    setDraggedItem(itemId)
+    setIsDragging(false)
+    dragStartPos.current = { x: e.clientX, y: e.clientY }
+    e.dataTransfer.effectAllowed = 'move'
+    setTimeout(() => setIsDragging(true), 100)
+  }
+
+  const handleDragOver = (e) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+  }
+
+  const handleDrop = (e, targetId) => {
+    e.preventDefault()
+    if (draggedItem && draggedItem !== targetId) {
+      const newOrder = [...menuOrder]
+      const draggedIndex = newOrder.indexOf(draggedItem)
+      const targetIndex = newOrder.indexOf(targetId)
+      
+      newOrder.splice(draggedIndex, 1)
+      newOrder.splice(targetIndex, 0, draggedItem)
+      
+      setMenuOrder(newOrder)
+      localStorage.setItem('menuOrder', JSON.stringify(newOrder))
+    }
+    setDraggedItem(null)
+  }
+
+  const handleDragEnd = () => {
+    setDraggedItem(null)
+    setTimeout(() => setIsDragging(false), 0)
+  }
+
+  const handleClick = (e, itemId) => {
+    if (!isDragging) {
+      onNavigate(itemId)
+    }
+  }
+
+  const getItemById = (id) => {
+    if (id === 'home') return { id:'home', key:'nav.home', Icon: RiHome4Line }
+    return APP_REGISTRY.find(a => a.id === id)
+  }
 
   return (
-    <div style={{
-      width: 200, borderRight:'1px solid var(--border)',
-      display:'flex', flexDirection:'column', flexShrink:0,
-      background:'rgba(0,0,0,0.2)',
-    }}>
-      <div style={{ padding:'14px 16px 6px', fontSize:9, fontWeight:600, letterSpacing:1.8, color:'var(--text-ter)', textTransform:'uppercase' }}>
-        {t('nav.home')}
-      </div>
-
-      {[{ id:'home', icon:'⌂', key:'nav.home' }, ...APP_REGISTRY.map(a => ({ id:a.id, icon:a.icon, key:a.navKey }))].map(item => (
-        <button key={item.id} onClick={() => onNavigate(item.id)} style={{
-          display:'flex', alignItems:'center', gap:10,
-          padding:'9px 14px', background:'none', border:'none',
-          borderLeft: activeApp === item.id ? '2px solid var(--accent)' : '2px solid transparent',
-          cursor:'pointer', transition:'background .12s',
-          backgroundColor: activeApp === item.id ? 'var(--surface-hover)' : 'transparent',
-        }}
-          onMouseEnter={e => { if(activeApp !== item.id) e.currentTarget.style.backgroundColor = 'var(--surface)' }}
-          onMouseLeave={e => { if(activeApp !== item.id) e.currentTarget.style.backgroundColor = 'transparent' }}
+    <AnimatePresence>
+      {menuOpen && (
+        <motion.div
+          initial={{ height: 0, opacity: 0 }}
+          animate={{ height: 'auto', opacity: 1 }}
+          exit={{ height: 0, opacity: 0 }}
+          transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+          style={{
+            background: 'rgba(0,0,0,0.3)',
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)',
+            borderBottom: '1px solid var(--border)',
+            overflow: 'hidden',
+          }}
         >
-          <span style={{ fontSize:16, width:20, textAlign:'center', flexShrink:0 }}>{item.icon}</span>
-          <span style={{ fontSize:13, color: activeApp===item.id ? 'var(--text-pri)' : 'var(--text-sec)', fontWeight: activeApp===item.id ? 500 : 400 }}>
-            {t(item.key)}
-          </span>
-        </button>
-      ))}
-
-      <div style={{ marginTop:'auto', padding:12 }}>
-        <div style={{ fontSize:9, fontWeight:600, letterSpacing:1.5, color:'var(--text-ter)', textTransform:'uppercase', marginBottom:8 }}>
-          Theme
-        </div>
-        <div style={{ display:'flex', flexDirection:'column', gap:3 }}>
-          {Object.values(PERIODS).map(p => (
-            <button key={p.name} onClick={() => onThemeOverride(p)} style={{
-              padding:'5px 8px', borderRadius:7, border: p.name===period.name ? `1px solid ${p.accent}44` : '1px solid transparent',
-              background: p.name===period.name ? p.accentDim : 'transparent',
-              color: p.name===period.name ? p.accent : 'var(--text-ter)',
-              fontSize:11, cursor:'pointer', fontFamily:'inherit', fontWeight:500,
-              textAlign:'left', transition:'all .15s',
-            }}>
-              {p.name}
-            </button>
-          ))}
-          <button onClick={() => onThemeOverride(null)} style={{
-            padding:'5px 8px', borderRadius:7, border:'1px solid transparent',
-            background:'transparent', color:'var(--text-ter)', fontSize:11,
-            cursor:'pointer', fontFamily:'inherit', textAlign:'left',
+          <div style={{
+            display:'grid',
+            gridTemplateColumns:'repeat(auto-fill, minmax(70px, 1fr))',
+            gap:8,
+            padding:'12px 16px',
+            justifyContent:'center',
+            justifyItems:'center',
           }}>
-            auto ↺
-          </button>
-        </div>
-      </div>
-    </div>
+            {menuOrder.map(itemId => {
+              const item = getItemById(itemId)
+              if (!item) return null
+              return (
+                 <div
+                   key={item.id}
+                   draggable
+                   onDragStart={(e) => handleDragStart(e, item.id)}
+                   onDragOver={handleDragOver}
+                   onDrop={(e) => handleDrop(e, item.id)}
+                   onDragEnd={handleDragEnd}
+                   onClick={(e) => handleClick(e, item.id)}
+                   style={{
+                     display:'flex',
+                     flexDirection:'column',
+                     alignItems:'center',
+                     gap:4,
+                     padding:'8px 10px',
+                     borderRadius:10,
+                     background: activeApp === item.id ? 'var(--surface-hover)' : 'transparent',
+                     border: activeApp === item.id ? '1px solid var(--border2)' : '1px solid transparent',
+                     cursor:'grab',
+                     transition:'all .15s',
+                     minWidth: 70,
+                     userSelect:'none',
+                     textAlign:'center',
+                   }}
+                   onMouseEnter={e => { if(activeApp !== item.id) e.currentTarget.style.background = 'var(--surface)' }}
+                   onMouseLeave={e => { if(activeApp !== item.id) e.currentTarget.style.background = 'transparent' }}
+                 >
+                   {(() => {
+                     const Icon = getIconForId(item.id)
+                     return Icon ? <Icon 
+                       size={20}
+                       color={activeApp === item.id ? 'var(--text-pri)' : 'var(--text-sec)'}
+                       style={{ pointerEvents:'none', minHeight: 24, display:'flex', alignItems:'center', justifyContent:'center' }}
+                     /> : null
+                   })()}
+                 </div>
+              )
+            })}
+          </div>
+
+          <div style={{ padding:'12px 16px', borderTop:'1px solid var(--border)', marginTop:8 }}>
+            <div style={{ fontSize:9, fontWeight:600, letterSpacing:1.5, color:'var(--text-ter)', textTransform:'uppercase', marginBottom:8 }}>
+              {t('settings.session')}
+            </div>
+            <div style={{ display:'flex', flexDirection:'row', flexWrap:'wrap', gap:8 }}>
+              {Object.values(PERIODS).map(p => (
+                <button key={p.name} onClick={() => onThemeOverride(p)} style={{
+                  padding:'5px 8px', borderRadius:7, border: p.name===period.name ? `1px solid ${p.accent}44` : '1px solid transparent',
+                  background: p.name===period.name ? p.accentDim : 'transparent',
+                  color: p.name===period.name ? p.accent : 'var(--text-ter)',
+                  fontSize:11, cursor:'pointer', fontFamily:'inherit', fontWeight:500,
+                  transition:'all .15s',
+                }}>
+                  {p.label?.[lang] ?? p.label?.en ?? p.name}
+                </button>
+              ))}
+              <button onClick={() => onThemeOverride(null)} style={{
+                padding:'5px 8px', borderRadius:7, border:'1px solid transparent',
+                background:'transparent', color:'var(--text-ter)', fontSize:11,
+                cursor:'pointer', fontFamily:'inherit',
+                transition:'all .15s',
+              }}>
+                auto ↺
+              </button>
+            </div>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   )
 }
 
@@ -151,12 +348,15 @@ function Launcher({ period, onOpen }) {
             }}
             whileHover={{ backgroundColor:'var(--surface-hover)', borderColor:'var(--border2)', y:-2 }}
             whileTap={{ scale:.95 }}
-          >
-            <div style={{ width:52, height:52, borderRadius:14, background:`${app.color}18`, border:`1px solid ${app.color}28`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:26 }}>
-              {app.icon}
-            </div>
-            <span style={{ fontSize:12, color:'var(--text-sec)' }}>{t(app.appKey)}</span>
-          </motion.button>
+           >
+             <div style={{ width:52, height:52, borderRadius:14, background:`${app.color}18`, border:`1px solid ${app.color}28`, display:'flex', alignItems:'center', justifyContent:'center', color: app.color }}>
+                {(() => {
+                  const Icon = getIconForId(app.id)
+                  return Icon ? <Icon size={app.iconSize ?? 26} /> : null
+                })()}
+              </div>
+             <span style={{ fontSize:12, color:'var(--text-sec)' }}>{t(app.appKey)}</span>
+           </motion.button>
         ))}
       </div>
 
@@ -165,9 +365,9 @@ function Launcher({ period, onOpen }) {
           {t('shortcuts.title')}
         </div>
         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
-          {[['1–4','Open apps'],['Esc','Go home'],['Ctrl+,','Settings'],['Ctrl+N','New note']].map(([k, v]) => (
+          {[['1–5',t('shortcuts.apps')],['Esc',t('shortcuts.home')],['Ctrl+,',t('shortcuts.settings')],['Ctrl+N',t('shortcuts.newNote')]].map(([k, v]) => (
             <div key={k} style={{ display:'flex', alignItems:'center', gap:8 }}>
-              <kbd style={{ background:'var(--surface-hover)', border:'1px solid var(--border2)', borderRadius:5, padding:'2px 7px', fontSize:11, fontFamily:'DM Mono', color:'var(--text-sec)' }}>{k}</kbd>
+              <kbd style={{ background:'var(--surface-hover)', border:'1px solid var(--border2)', borderRadius:5, padding:'2px 7px', fontSize:11, fontFamily:'var(--font-mono)', color:'var(--text-sec)' }}>{k}</kbd>
               <span style={{ fontSize:12, color:'var(--text-ter)' }}>{v}</span>
             </div>
           ))}
@@ -181,7 +381,21 @@ function Launcher({ period, onOpen }) {
 function AppWindow({ appId, onClose, onThemeOverride }) {
   const app = getApp(appId)
   const { t } = useTranslation()
-  if (!app) return null
+  const [touchStart, setTouchStart] = React.useState(null)
+
+  const handleTouchStart = (e) => {
+    setTouchStart({ x: e.touches[0].clientX, y: e.touches[0].clientY })
+  }
+
+  const handleTouchEnd = (e) => {
+    if (!touchStart) return
+    const dx = e.changedTouches[0].clientX - touchStart.x
+    const dy = e.changedTouches[0].clientY - touchStart.y
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) && dx > 0) {
+      onClose()
+    }
+    setTouchStart(null)
+  }
 
   return (
     <motion.div
@@ -190,7 +404,9 @@ function AppWindow({ appId, onClose, onThemeOverride }) {
       animate={{ opacity:1, x:0 }}
       exit={{ opacity:0, x:-16 }}
       transition={{ duration:.22, ease:[.22,1,.36,1] }}
-      style={{ position:'absolute', inset:0, display:'flex', flexDirection:'column' }}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      style={{ position:'absolute', inset:0, display:'flex', flexDirection:'column', touchAction: 'manipulation' }}
     >
       <div style={{
         display:'flex', alignItems:'center', justifyContent:'space-between',
@@ -198,17 +414,21 @@ function AppWindow({ appId, onClose, onThemeOverride }) {
         flexShrink:0, background:'rgba(0,0,0,0.15)',
       }}>
         <div style={{ display:'flex', alignItems:'center', gap:9 }}>
-          <span style={{ fontSize:18 }}>{app.icon}</span>
+          {(() => {
+            const Icon = getIconForId(appId)
+            return Icon ? <Icon size={18} color={app.color} /> : null
+          })()}
           <span style={{ fontFamily:'Syne', fontSize:16, fontWeight:600, color:'var(--text-pri)' }}>
             {t(app.appKey)}
           </span>
         </div>
-        <button onClick={onClose} style={{
+        <button onClick={onClose} onTouchStart={(e) => { e.preventDefault(); onClose() }} style={{
           background:'var(--surface)', border:'1px solid var(--border)',
           borderRadius:9, width:30, height:30, cursor:'pointer',
           color:'var(--text-sec)', fontSize:17,
           display:'flex', alignItems:'center', justifyContent:'center',
           transition:'background .12s',
+          touchAction: 'manipulation'
         }}
           onMouseEnter={e => e.currentTarget.style.background = 'var(--surface-hover)'}
           onMouseLeave={e => e.currentTarget.style.background = 'var(--surface)'}
@@ -234,8 +454,12 @@ function AppWindow({ appId, onClose, onThemeOverride }) {
 export default function App() {
   const { period, setOverride } = useTheme()
   const [activeApp, setActiveApp] = React.useState('home')
+  const [menuOpen, setMenuOpen] = React.useState(false)
 
-  const navigate = (id) => setActiveApp(id)
+  const navigate = (id) => {
+    setActiveApp(id)
+    setMenuOpen(false)
+  }
 
   useEffect(() => {
     const handler = (e) => {
@@ -243,7 +467,8 @@ export default function App() {
       if (e.key === '1') setActiveApp('clock')
       if (e.key === '2') setActiveApp('notes')
       if (e.key === '3') setActiveApp('calculator')
-      if (e.key === '4') setActiveApp('settings')
+      if (e.key === '4') setActiveApp('tower')
+      if (e.key === '5') setActiveApp('settings')
       if (e.ctrlKey && e.key === ',') { e.preventDefault(); setActiveApp('settings') }
       if (e.ctrlKey && e.key === 'n') { e.preventDefault(); setActiveApp('notes') }
     }
@@ -257,30 +482,23 @@ export default function App() {
       <div style={{ position:'absolute', inset:0, background: period.orb, zIndex:0, pointerEvents:'none' }} />
 
       <div style={{ position:'relative', zIndex:1, display:'flex', flexDirection:'column', height:'100%' }}>
-        <TopBar period={period} />
+        <TopBar period={period} onToggleMenu={() => setMenuOpen(v => !v)} menuOpen={menuOpen} />
 
-        <div style={{ flex:1, display:'flex', overflow:'hidden' }}>
-          <Sidebar
-            activeApp={activeApp}
-            onNavigate={navigate}
-            period={period}
-            onThemeOverride={setOverride}
-          />
+        <HorizontalMenu activeApp={activeApp} onNavigate={navigate} menuOpen={menuOpen} period={period} onThemeOverride={setOverride} />
 
-          <div style={{ flex:1, position:'relative', overflow:'hidden' }}>
-            <AnimatePresence mode="wait">
-              {activeApp === 'home' ? (
-                <Launcher key="home" period={period} onOpen={navigate} />
-              ) : (
-                <AppWindow
-                  key={activeApp}
-                  appId={activeApp}
-                  onClose={() => navigate('home')}
-                  onThemeOverride={setOverride}
-                />
-              )}
-            </AnimatePresence>
-          </div>
+        <div style={{ flex:1, position:'relative', overflow:'hidden' }}>
+          <AnimatePresence mode="wait">
+            {activeApp === 'home' ? (
+              <Launcher key="home" period={period} onOpen={navigate} />
+            ) : (
+              <AppWindow
+                key={activeApp}
+                appId={activeApp}
+                onClose={() => navigate('home')}
+                onThemeOverride={setOverride}
+              />
+            )}
+          </AnimatePresence>
         </div>
       </div>
     </div>
