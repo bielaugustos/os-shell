@@ -4,6 +4,7 @@ import { SUPPORTED_LANGS } from '../config/i18n'
 import { PERIODS } from '../config/theme'
 import { PERMISSION_DEFS, check, request, checkAll, getPermissionToggles, togglePermission } from '../core/permissions'
 import { RiRefreshLine } from '@remixicon/react'
+import TimeSettings from '../components/TimeSettings'
 
 function useIsMobile(breakpoint = 640) {
   const [mobile, setMobile] = useState(() => window.innerWidth < breakpoint)
@@ -144,9 +145,11 @@ export default function SettingsApp({ onThemeOverride }) {
   return (
     <div style={{ height:'100%', overflowY:'auto', padding: pad, scrollbarWidth:'thin' }}>
 
+      <TimeSettings onThemeOverride={onThemeOverride} />
+
       <SectionLabel>{t('settings.appearance')}</SectionLabel>
       <div style={{ fontSize:12, color:'var(--text-ter)', marginBottom:10 }}>
-        Adapts automatically to time of day. Preview:
+        {t('settings.themeDescription')}
       </div>
       <div style={{ display:'flex', gap:6, flexWrap:'wrap', marginBottom:4 }}>
         {Object.values(PERIODS).map(p => (
@@ -193,7 +196,7 @@ export default function SettingsApp({ onThemeOverride }) {
       }}>
         <div style={{ flex:1, minWidth:0 }}>
           <div style={{ fontSize: isMobile ? 12 : 13, color:'var(--text-sec)', marginBottom:6 }}>
-            {refreshing ? 'Checking...' : `${granted} of ${total} granted`}
+            {refreshing ? t('settings.checking') : t('settings.ofTotalGranted', { granted, total })}
           </div>
           <div style={{ width: isMobile ? 100 : 160, height:3, borderRadius:99, background:'var(--border)', overflow:'hidden' }}>
             <div style={{ height:'100%', borderRadius:99, background: granted===total ? '#34d399' : 'var(--accent)', width:`${total > 0 ? (granted/total)*100 : 0}%`, transition:'width .6s ease' }} />

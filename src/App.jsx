@@ -5,6 +5,8 @@ import { useTheme } from './hooks/useTheme'
 import { useWindowManager } from './hooks/useWindowManager'
 import { APP_REGISTRY, getApp } from './config/appRegistry'
 import { PERIODS } from './config/theme'
+import { TimeProvider, useTime } from './contexts/TimeContext'
+import TimeSettings from './components/TimeSettings'
 import './config/i18n'
 import { 
   RiHome4Line,
@@ -34,6 +36,7 @@ function TopBar({ period, onToggleMenu, menuOpen }) {
   const { t, i18n } = useTranslation()
   const [time, setTime] = React.useState(new Date())
   const [online, setOnline] = React.useState(navigator.onLine)
+  const [blurEnabled, setBlurEnabled] = React.useState(true)
 
   useEffect(() => {
     const id = setInterval(() => setTime(new Date()), 10_000)
@@ -44,8 +47,6 @@ function TopBar({ period, onToggleMenu, menuOpen }) {
     return () => { clearInterval(id); window.removeEventListener('online', up); window.removeEventListener('offline', down) }
   }, [])
 
-  const hh = String(time.getHours()).padStart(2, '0')
-  const mm = String(time.getMinutes()).padStart(2, '0')
   const dateStr = time.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
 
   return (
@@ -142,14 +143,15 @@ function TopBar({ period, onToggleMenu, menuOpen }) {
         </button>
       </div>
 
-      <div style={{ fontFamily:'DM Mono', fontSize:13, color:'var(--text-ter)' }}>
-        {hh}:{mm}
-      </div>
-
       <div style={{ display:'flex', alignItems:'center', gap:14, fontSize:12, color:'var(--text-ter)' }}>
         <span style={{ color: online ? 'var(--accent)' : 'var(--text-ter)', fontSize:10 }}>◉</span>
         <span>{period.label?.[i18n.language] ?? period.label?.en ?? period.name}</span>
-        <span style={{ fontSize:11 }}>{dateStr}</span>
+        <span
+          onClick={() => setBlurEnabled(!blurEnabled)}
+          style={{ fontSize:11, filter: blurEnabled ? 'blur(2px)' : 'none', cursor:'pointer', transition:'filter .3s', userSelect:'none' }}
+        >
+          {dateStr}
+        </span>
       </div>
     </div>
   )
@@ -317,8 +319,18 @@ function HorizontalMenu({ activeApp, onNavigate, menuOpen, period, onThemeOverri
 /* ── Launcher (home) ───────────────────────────────────────── */
 function Launcher({ period, onOpen }) {
   const { t } = useTranslation()
+  const { currentTime, online } = useTime()
   const greetingKey = `greeting.${period.name}`
-  const date = new Date().toLocaleDateString(undefined, { weekday:'long', month:'long', day:'numeric' })
+  const [blurEnabled, setBlurEnabled] = React.useState(true)
+
+  const formatDate = () => {
+    const options = { weekday:'long', year:'numeric', month:'long', day:'numeric' }
+    return currentTime.toLocaleDateString(undefined, options)
+  }
+
+  const formatTime = () => {
+    return currentTime.toLocaleTimeString(undefined, { hour12: false })
+  }
 
   return (
     <motion.div
@@ -332,7 +344,12 @@ function Launcher({ period, onOpen }) {
       <h1 style={{ fontFamily:'Syne', fontSize:42, fontWeight:700, color:'var(--text-pri)', letterSpacing:'-1px', lineHeight:1.1, marginBottom:6 }}>
         {t(greetingKey, { defaultValue: 'Hello' })}
       </h1>
-      <p style={{ fontSize:14, color:'var(--text-ter)', fontWeight:300, marginBottom:40 }}>{date}</p>
+      <div
+        onClick={() => setBlurEnabled(!blurEnabled)}
+        style={{ fontSize:14, color:'var(--text-ter)', fontWeight:300, marginBottom:40, filter: blurEnabled ? 'blur(2px)' : 'none', userSelect:'none', cursor:'pointer', transition:'filter .3s' }}
+      >
+        {formatTime()} · {formatDate()}
+      </div>
 
       <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(110px, 1fr))', gap:14 }}>
         {APP_REGISTRY.map((app, i) => (
@@ -456,8 +473,9 @@ function AppWindow({ appId, onClose, onThemeOverride }) {
 }
 
 /* ── Main App ──────────────────────────────────────────────── */
-export default function App() {
-  const { period, setOverride } = useTheme()
+function AppContent() {
+  const { currentTime } = useTime()
+  const { period, setOverride } = useTheme(currentTime)
   const [activeApp, setActiveApp] = React.useState('home')
   const [menuOpen, setMenuOpen] = React.useState(false)
 
@@ -508,5 +526,13 @@ export default function App() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function App() {
+  return (
+    <TimeProvider>
+      <AppContent />
+    </TimeProvider>
   )
 }
