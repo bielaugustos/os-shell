@@ -44,7 +44,7 @@ export const PERIODS = {
     label: { en: 'Afternoon', pt: 'Tarde', es: 'Tarde', fr: 'Après-midi' },
   },
   evening: {
-    name: 'evening', range: [18, 21],
+    name: 'evening', range: [18, 23],
     bg: '#090d16',
     orb: 'radial-gradient(ellipse 80% 50% at 15% 90%, rgba(249,115,22,0.22), transparent)',
     surface: 'rgba(255,255,255,0.05)',
@@ -55,7 +55,7 @@ export const PERIODS = {
     label: { en: 'Evening', pt: 'Noite', es: 'Noche', fr: 'Soir' },
   },
   night: {
-    name: 'night', range: [21, 5],
+    name: 'night', range: [23, 5],
     bg: '#000000',
     orb: 'radial-gradient(ellipse 50% 40% at 60% 30%, rgba(60,100,200,0.18), transparent)',
     surface: 'rgba(255,255,255,0.04)',
@@ -72,7 +72,7 @@ export function getPeriod(hour = new Date().getHours()) {
   if (hour >= 7  && hour < 12) return PERIODS.morning
   if (hour >= 12 && hour < 15) return PERIODS.midday
   if (hour >= 15 && hour < 18) return PERIODS.afternoon
-  if (hour >= 18 && hour < 21) return PERIODS.evening
+  if (hour >= 18 && hour < 23) return PERIODS.evening
   return PERIODS.night
 }
 

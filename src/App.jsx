@@ -380,7 +380,7 @@ function Launcher({ period, onOpen }) {
       animate={{ opacity:1 }}
       exit={{ opacity:0 }}
       transition={{ duration:.2 }}
-      style={{ padding:'40px 36px', overflowY:'auto', height:'100%', paddingBottom:'env(safe-area-inset-bottom, 40px)' }}
+      style={{ padding:'40px 36px', overflowY:'auto', height:'100%', paddingBottom:'calc(env(safe-area-inset-bottom, 20px) + 20px)' }}
     >
       <h1 style={{ fontFamily:'Syne', fontSize:42, fontWeight:700, color:'var(--text-pri)', letterSpacing:'-1px', lineHeight:1.1, marginBottom:6 }}>
         {t(greetingKey, { defaultValue: 'Hello' })}
@@ -542,7 +542,7 @@ function AppContent() {
   }, [])
 
   return (
-    <div style={{ width:'100vw', height:'100dvh', background:'var(--bg)', display:'flex', flexDirection:'column', overflow:'hidden', position:'relative', paddingBottom:'env(safe-area-inset-bottom, 20px)' }}>
+    <div style={{ width:'100vw', height:'100dvh', background:'var(--bg)', display:'flex', flexDirection:'column', overflow:'hidden', position:'relative' }}>
       <div style={{ position:'absolute', inset:0, background: period.bg, zIndex:0, transition:'background 1.5s ease', pointerEvents:'none' }} />
       <div style={{ position:'absolute', inset:0, background: period.orb, zIndex:0, pointerEvents:'none' }} />
 
