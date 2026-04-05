@@ -16,6 +16,10 @@ import {
   RiFlashlightLine,
   RiMagicLine,
   RiSettings3Line,
+  RiStackLine,
+  RiNotification3Line,
+  RiTimerLine,
+  RiArtboardLine,
 } from '@remixicon/react'
 
 function getIconForId(id) {
@@ -23,8 +27,9 @@ function getIconForId(id) {
     case 'home': return RiHome4Line
     case 'clock': return RiTimeLine
     case 'notes': return RiFileTextLine
+    case 'quadro': return RiArtboardLine
     case 'calculator': return RiCalculatorLine
-    case 'energy': return RiFlashlightLine
+    case 'energy': return RiStackLine
     case 'chat': return RiMagicLine
     case 'settings': return RiSettings3Line
     default: return null
@@ -32,11 +37,12 @@ function getIconForId(id) {
 }
 
 /* ── Top bar ─────────────────────────────────────────────────── */
-function TopBar({ period, onToggleMenu, menuOpen }) {
+function TopBar({ period, onToggleMenu, menuOpen, onPomodoroClick }) {
   const { t, i18n } = useTranslation()
   const [time, setTime] = React.useState(new Date())
   const [online, setOnline] = React.useState(navigator.onLine)
   const [blurEnabled, setBlurEnabled] = React.useState(true)
+  const [pomodoroState, setPomodoroState] = React.useState(null)
 
   useEffect(() => {
     const id = setInterval(() => setTime(new Date()), 10_000)
@@ -45,6 +51,26 @@ function TopBar({ period, onToggleMenu, menuOpen }) {
     window.addEventListener('online', up)
     window.addEventListener('offline', down)
     return () => { clearInterval(id); window.removeEventListener('online', up); window.removeEventListener('offline', down) }
+  }, [])
+
+  useEffect(() => {
+    const checkPomodoro = () => {
+      try {
+        const saved = localStorage.getItem('clock_pomodoro_state')
+        if (saved) {
+          const state = JSON.parse(saved)
+          if (state.isRunning || state.showNotification) {
+            const remaining = state.startTime ? Math.max(0, Math.floor((state.startTime + state.timeLeft * 1000 - Date.now()) / 1000)) : state.timeLeft
+            setPomodoroState({ timeLeft: remaining, showNotification: state.showNotification })
+          } else {
+            setPomodoroState(null)
+          }
+        }
+      } catch (e) { setPomodoroState(null) }
+    }
+    checkPomodoro()
+    const interval = setInterval(checkPomodoro, 1000)
+    return () => clearInterval(interval)
   }, [])
 
   const dateStr = time.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
@@ -146,6 +172,15 @@ function TopBar({ period, onToggleMenu, menuOpen }) {
       <div style={{ display:'flex', alignItems:'center', gap:14, fontSize:12, color:'var(--text-ter)' }}>
         <span style={{ color: online ? 'var(--accent)' : 'var(--text-ter)', fontSize:10 }}>◉</span>
         <span>{period.label?.[i18n.language] ?? period.label?.en ?? period.name}</span>
+        {pomodoroState && pomodoroState.showNotification && (
+          <span 
+            onClick={onPomodoroClick}
+            style={{ color:'var(--accent)', cursor:'pointer', display:'flex', alignItems:'center', gap:4 }}
+          >
+            <span style={{ width:6, height:6, borderRadius:'50%', background:'var(--accent)', animation:'pulse 1s infinite' }} />
+            {Math.floor(pomodoroState.timeLeft / 60)}:{String(pomodoroState.timeLeft % 60).padStart(2, '0')}
+          </span>
+        )}
         <span
           onClick={() => setBlurEnabled(!blurEnabled)}
           style={{ fontSize:11, filter: blurEnabled ? 'blur(2px)' : 'none', cursor:'pointer', transition:'filter .3s', userSelect:'none' }}
@@ -153,6 +188,12 @@ function TopBar({ period, onToggleMenu, menuOpen }) {
           {dateStr}
         </span>
       </div>
+      <style>{`
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
+        }
+      `}</style>
     </div>
   )
 }
@@ -245,41 +286,41 @@ function HorizontalMenu({ activeApp, onNavigate, menuOpen, period, onThemeOverri
               const item = getItemById(itemId)
               if (!item) return null
               return (
-                 <div
-                   key={item.id}
-                   draggable
-                   onDragStart={(e) => handleDragStart(e, item.id)}
-                   onDragOver={handleDragOver}
-                   onDrop={(e) => handleDrop(e, item.id)}
-                   onDragEnd={handleDragEnd}
-                   onClick={(e) => handleClick(e, item.id)}
-                   style={{
-                     display:'flex',
-                     flexDirection:'column',
-                     alignItems:'center',
-                     gap:4,
-                     padding:'8px 10px',
-                     borderRadius:10,
-                     background: activeApp === item.id ? 'var(--surface-hover)' : 'transparent',
-                     border: activeApp === item.id ? '1px solid var(--border2)' : '1px solid transparent',
-                     cursor:'grab',
-                     transition:'all .15s',
-                     minWidth: 70,
-                     userSelect:'none',
-                     textAlign:'center',
-                   }}
-                   onMouseEnter={e => { if(activeApp !== item.id) e.currentTarget.style.background = 'var(--surface)' }}
-                   onMouseLeave={e => { if(activeApp !== item.id) e.currentTarget.style.background = 'transparent' }}
-                 >
-                   {(() => {
-                     const Icon = getIconForId(item.id)
-                     return Icon ? <Icon 
-                       size={20}
-                       color={activeApp === item.id ? 'var(--text-pri)' : 'var(--text-sec)'}
-                       style={{ pointerEvents:'none', minHeight: 24, display:'flex', alignItems:'center', justifyContent:'center' }}
-                     /> : null
-                   })()}
-                 </div>
+<div
+                    key={item.id}
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, item.id)}
+                    onDragOver={handleDragOver}
+                    onDrop={(e) => handleDrop(e, item.id)}
+                    onDragEnd={handleDragEnd}
+                    onClick={(e) => handleClick(e, item.id)}
+                    style={{
+                      display:'flex',
+                      flexDirection:'column',
+                      alignItems:'center',
+                      gap:4,
+                      padding:'8px 10px',
+                      borderRadius:10,
+                      background: activeApp === item.id ? 'var(--surface-hover)' : 'transparent',
+                      border: activeApp === item.id ? '1px solid var(--border2)' : '1px solid transparent',
+                      cursor:'grab',
+                      transition:'all .15s',
+                      minWidth: 70,
+                      userSelect:'none',
+                      textAlign:'center',
+                    }}
+                    onMouseEnter={e => { if(activeApp !== item.id) e.currentTarget.style.background = 'var(--surface)' }}
+                    onMouseLeave={e => { if(activeApp !== item.id) e.currentTarget.style.background = 'transparent' }}
+                  >
+                    {(() => {
+                      const Icon = getIconForId(item.id)
+                      return Icon ? <Icon 
+                        size={20}
+                        color={activeApp === item.id ? 'var(--text-pri)' : 'var(--text-sec)'}
+                        style={{ pointerEvents:'none', minHeight: 24, display:'flex', alignItems:'center', justifyContent:'center' }}
+                      /> : null
+                    })()}
+                  </div>
               )
             })}
           </div>
@@ -329,7 +370,9 @@ function Launcher({ period, onOpen }) {
   }
 
   const formatTime = () => {
-    return currentTime.toLocaleTimeString(undefined, { hour12: false })
+    const h = currentTime.getHours()
+    const m = currentTime.getMinutes()
+    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`
   }
 
   return (
@@ -339,7 +382,7 @@ function Launcher({ period, onOpen }) {
       animate={{ opacity:1 }}
       exit={{ opacity:0 }}
       transition={{ duration:.2 }}
-      style={{ padding:'40px 36px', overflowY:'auto', height:'100%' }}
+      style={{ padding:'40px 36px', overflowY:'auto', height:'100%', paddingBottom:'calc(env(safe-area-inset-bottom, 20px) + 20px)' }}
     >
       <h1 style={{ fontFamily:'Syne', fontSize:42, fontWeight:700, color:'var(--text-pri)', letterSpacing:'-1px', lineHeight:1.1, marginBottom:6 }}>
         {t(greetingKey, { defaultValue: 'Hello' })}
@@ -459,7 +502,7 @@ function AppWindow({ appId, onClose, onThemeOverride }) {
         </button>
       </div>
 
-      <div style={{ flex:1, overflow:'hidden', position:'relative' }}>
+      <div style={{ flex:1, overflow:'hidden', position:'relative', paddingBottom:'env(safe-area-inset-bottom, 0px)' }}>
         <Suspense fallback={
           <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'100%', color:'var(--text-ter)', fontSize:13 }}>
             Loading...
@@ -493,6 +536,7 @@ function AppContent() {
       if (e.key === '4') setActiveApp('energy')
       if (e.key === '5') setActiveApp('chat')
       if (e.key === '6') setActiveApp('settings')
+      if (e.key === '7') setActiveApp('quadro')
       if (e.ctrlKey && e.key === ',') { e.preventDefault(); setActiveApp('settings') }
       if (e.ctrlKey && e.key === 'n') { e.preventDefault(); setActiveApp('notes') }
     }
@@ -505,8 +549,8 @@ function AppContent() {
       <div style={{ position:'absolute', inset:0, background: period.bg, zIndex:0, transition:'background 1.5s ease', pointerEvents:'none' }} />
       <div style={{ position:'absolute', inset:0, background: period.orb, zIndex:0, pointerEvents:'none' }} />
 
-      <div style={{ position:'relative', zIndex:1, display:'flex', flexDirection:'column', height:'100%' }}>
-        <TopBar period={period} onToggleMenu={() => setMenuOpen(v => !v)} menuOpen={menuOpen} />
+      <div style={{ position:'relative', zIndex:1, display:'flex', flexDirection:'column', height:'100%', paddingBottom:'env(safe-area-inset-bottom, 0px)' }}>
+        <TopBar period={period} onToggleMenu={() => setMenuOpen(v => !v)} menuOpen={menuOpen} onPomodoroClick={() => navigate('clock')} />
 
         <HorizontalMenu activeApp={activeApp} onNavigate={navigate} menuOpen={menuOpen} period={period} onThemeOverride={setOverride} />
 
