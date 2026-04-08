@@ -1570,7 +1570,7 @@ export default function ClockApp({ onClose, isSplitMode }) {
 
   return (
     <div style={{ display:'flex', flexDirection:'column', height:'100%' }}>
-      <div style={{ display:'flex', alignItems:'center', gap:8, padding:'6px 20px', borderBottom:'1px solid var(--border)', background:'var(--surface)', overflowX:'auto' }}>
+      <div style={{ width: 425, height: 41, padding: '0 20px', display:'flex', alignItems:'center', justifyContent:'flex-start', gap:8, borderBottom:'1px solid var(--border)', background:'var(--surface)', overflowX:'auto' }}>
         {!isSplitMode && (
           <button 
             onClick={onClose}

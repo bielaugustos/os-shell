@@ -480,27 +480,28 @@ export default function EnergyApp({ onClose, isSplitMode }) {
       }}
       onClick={handleTap}
     >
-      {!isSplitMode && (
-        <button 
-          onClick={(e) => { e.stopPropagation(); onClose() }}
-          style={{
-            position: 'absolute', top: 12, left: 20, zIndex: 100,
-            width: 28, height: 28, borderRadius: 7, border: '1px solid rgba(255,255,255,0.2)',
-            background: 'rgba(0,0,0,0.5)', cursor: 'pointer', color: 'var(--text-sec)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            transition: 'all .12s',
-          }}
-          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.7)'; e.currentTarget.style.borderColor = 'var(--accent)' }}
-          onMouseLeave={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.5)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)' }}
-        >
-          <RiCloseLine size={14} />
-        </button>
-      )}
+      <div style={{ width: 425, height: 41, padding: '0 20px', display:'flex', alignItems:'center', justifyContent:'flex-start', gap:8, borderBottom:'1px solid var(--border)', background:'rgba(0,0,0,0.3)', position:'absolute', top:0, left:0, zIndex:100 }}>
+        {!isSplitMode && (
+          <button 
+            onClick={(e) => { e.stopPropagation(); onClose() }}
+            style={{
+              width: 28, height: 28, borderRadius: 7, border:'1px solid rgba(255,255,255,0.2)',
+              background: 'rgba(0,0,0,0.5)', cursor: 'pointer', color:'var(--text-sec)',
+              display:'flex', alignItems:'center', justifyContent:'center',
+              transition:'all .12s', flexShrink:0,
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.7)'; e.currentTarget.style.borderColor = 'var(--accent)' }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.5)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)' }}
+          >
+            <RiCloseLine size={14} />
+          </button>
+        )}
+      </div>
 
       {gameState !== 'idle' && (
       <div style={{
         position:'absolute',
-        top: 20,
+        top: 61,
         left: '50%',
         transform: 'translateX(-50%)',
         textAlign: 'center',
@@ -519,7 +520,7 @@ export default function EnergyApp({ onClose, isSplitMode }) {
       {gameState !== 'idle' && perfectCount > 0 && (
         <div style={{
           position: 'absolute',
-          top: 20,
+          top: 61,
           right: 20,
           padding: '10px 16px',
           borderRadius: 12,
@@ -539,7 +540,7 @@ export default function EnergyApp({ onClose, isSplitMode }) {
 
       <div ref={perfectFlashRef} style={{
         position: 'absolute',
-        top: 95,
+        top: 136,
         left: '50%',
         transform: 'translateX(-50%)',
         fontSize: 14,
@@ -558,7 +559,7 @@ export default function EnergyApp({ onClose, isSplitMode }) {
       {gameState !== 'idle' && (
         <div style={{
           position:'absolute',
-          bottom: 30,
+          bottom: 20,
           left: '50%',
           transform: 'translateX(-50%)',
           padding: '12px 24px',

@@ -128,14 +128,13 @@ export default function ChatApp({ onClose, isSplitMode }) {
       height:'100%',
       background:'var(--bg)',
     }}>
-      {!isSplitMode && (
-        <div style={{ 
-          display:'flex', 
-          alignItems:'center',
-          padding:'12px 20px', 
-          borderBottom:'1px solid var(--border)',
-          background:'var(--surface)',
-        }}>
+      <div style={{ 
+        width: 425, height: 41, padding: '0 20px',
+        display:'flex', alignItems:'center', justifyContent:'flex-start', gap:8,
+        borderBottom:'1px solid var(--border)',
+        background:'var(--surface)',
+      }}>
+        {!isSplitMode && (
           <button 
             onClick={onClose}
             style={{
@@ -149,8 +148,8 @@ export default function ChatApp({ onClose, isSplitMode }) {
           >
             <RiCloseLine size={14} />
           </button>
-        </div>
-      )}
+        )}
+      </div>
       <div style={{ 
         flex:1,
         overflowY:'auto',

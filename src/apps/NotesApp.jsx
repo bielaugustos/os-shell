@@ -249,7 +249,7 @@ function Sidebar({ notes, activeId, onSelect, onNew, onDelete, onArchive, search
       borderRight: '1px solid var(--border)',
       flexShrink: 0,
     }}>
-      <div style={{ padding: '12px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 8 }}>
+      <div style={{ width: 425, height: 41, padding: '0 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: 8 }}>
         {!isSplitMode && (
           <button 
             onClick={onClose}

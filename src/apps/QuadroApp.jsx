@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
+import { RiCloseLine } from '@remixicon/react'
 
 const ZOOM_MIN = 0.1
 const ZOOM_MAX = 10
@@ -274,18 +275,18 @@ export default function QuadroApp({ onClose, isSplitMode }) {
     <button
       onClick={() => setTool(id)}
       style={{
-        width: 36,
-        height: 36,
-        borderRadius: 8,
+        width: 28,
+        height: 28,
+        borderRadius: 7,
         border: '1px solid',
-        borderColor: tool === id ? 'var(--accent)' : 'var(--border)',
-        background: tool === id ? 'var(--surface-hover)' : 'var(--surface)',
-        color: tool === id ? 'var(--accent)' : 'var(--text-sec)',
+        borderColor: tool === id ? 'var(--accent)' : 'transparent',
+        background: tool === id ? 'var(--accent)' : 'transparent',
+        color: tool === id ? '#fff' : 'var(--text-sec)',
         cursor: 'pointer',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        fontSize: 16,
+        fontSize: 14,
       }}
       title={label}
     >
@@ -296,7 +297,8 @@ export default function QuadroApp({ onClose, isSplitMode }) {
   return (
     <div style={{ width:'100%', height:'100%', display:'flex', flexDirection:'column', background:'var(--bg)' }}>
       <div style={{
-        display:'flex', alignItems:'center', gap:8, padding:'8px 20px',
+        width: 425, height: 41, padding: '0 20px',
+        display:'flex', alignItems:'center', justifyContent:'flex-start', gap:8,
         borderBottom:'1px solid var(--border)', flexWrap:'wrap',
         background:'var(--surface)',
       }}>
@@ -312,28 +314,26 @@ export default function QuadroApp({ onClose, isSplitMode }) {
             onMouseEnter={e => { e.currentTarget.style.background = 'var(--surface-hover)'; e.currentTarget.style.borderColor = 'var(--accent)' }}
             onMouseLeave={e => { e.currentTarget.style.background = 'var(--surface)'; e.currentTarget.style.borderColor = 'var(--border)' }}
           >
-            ×
+            <RiCloseLine size={14} />
           </button>
         )}
 
-        {!isSplitMode && <div style={{ width:1, height:24, background:'var(--border)' }} />}
-
-        <div style={{ display:'flex', gap:4 }}>
+        <div style={{ display:'flex', gap:2 }}>
           <ToolButton id={TOOLS.pan} icon="✋" label={t('quadro.pan')} />
           <ToolButton id={TOOLS.select} icon="⬚" label={t('quadro.select')} />
           <ToolButton id={TOOLS.brush} icon="✎" label={t('quadro.brush')} />
           <ToolButton id={TOOLS.eraser} icon="⌫" label={t('quadro.eraser')} />
         </div>
 
-        <div style={{ width:1, height:24, background:'var(--border)' }} />
+        <div style={{ width:1, height:20, background:'var(--border)' }} />
 
-        <div style={{ display:'flex', gap:4 }}>
+        <div style={{ display:'flex', gap:2 }}>
           <ToolButton id={TOOLS.line} icon="╱" label={t('quadro.line')} />
           <ToolButton id={TOOLS.rectangle} icon="▢" label={t('quadro.rectangle')} />
           <ToolButton id={TOOLS.ellipse} icon="○" label={t('quadro.ellipse')} />
         </div>
 
-        <div style={{ width:1, height:24, background:'var(--border)' }} />
+        <div style={{ width:1, height:20, background:'var(--border)' }} />
 
         <div style={{ display:'flex', gap:2, alignItems:'center' }}>
           {COLORS.slice(0, 8).map(c => (
@@ -363,9 +363,9 @@ export default function QuadroApp({ onClose, isSplitMode }) {
           />
         </div>
 
-        <div style={{ width:1, height:24, background:'var(--border)' }} />
+        <div style={{ width:1, height:20, background:'var(--border)' }} />
 
-        <div style={{ display:'flex', alignItems:'center', gap:4 }}>
+        <div style={{ display:'flex', alignItems:'center', gap:2 }}>
           <span style={{ fontSize:11, color:'var(--text-ter)' }}>{t('quadro.size')}:</span>
           <input
             type="range"
@@ -378,7 +378,7 @@ export default function QuadroApp({ onClose, isSplitMode }) {
           <span style={{ fontSize:11, color:'var(--text-sec)', minWidth:20 }}>{brushSize}</span>
         </div>
 
-        <div style={{ width:1, height:24, background:'var(--border)' }} />
+        <div style={{ width:1, height:20, background:'var(--border)' }} />
 
         <div style={{ display:'flex', gap:2 }}>
           <button
@@ -409,7 +409,7 @@ export default function QuadroApp({ onClose, isSplitMode }) {
 
         <div style={{ flex:1 }} />
 
-        <div style={{ display:'flex', gap:4 }}>
+        <div style={{ display:'flex', gap:2 }}>
           <button onClick={handleUndo} style={{
             padding:'4px 10px', borderRadius:6, border:'1px solid var(--border)',
             background:'var(--surface)', color:'var(--text-sec)', cursor:'pointer', fontSize:11,
@@ -430,9 +430,9 @@ export default function QuadroApp({ onClose, isSplitMode }) {
           </button>
         </div>
 
-        <div style={{ width:1, height:24, background:'var(--border)' }} />
+        <div style={{ width:1, height:20, background:'var(--border)' }} />
 
-        <div style={{ display:'flex', alignItems:'center', gap:4 }}>
+        <div style={{ display:'flex', alignItems:'center', gap:2 }}>
           <button onClick={handleZoomOut} style={{
             width:28, height:28, borderRadius:6, border:'1px solid var(--border)',
             background:'var(--surface)', color:'var(--text-sec)', cursor:'pointer',

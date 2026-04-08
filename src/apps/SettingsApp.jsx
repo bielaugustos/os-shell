@@ -144,8 +144,8 @@ export default function SettingsApp({ onThemeOverride, onClose, isSplitMode }) {
 
   return (
     <div style={{ height:'100%', overflowY:'auto', padding: pad, scrollbarWidth:'thin' }}>
-      {!isSplitMode && (
-        <div style={{ display:'flex', alignItems:'center', padding:'8px 20px', borderBottom:'1px solid var(--border)', background:'var(--surface)', marginBottom:4 }}>
+      <div style={{ width: 425, height: 41, padding: '0 20px', display:'flex', alignItems:'center', justifyContent:'flex-start', gap:8, borderBottom:'1px solid var(--border)', background:'var(--surface)', marginBottom:4 }}>
+        {!isSplitMode && (
           <button 
             onClick={onClose}
             style={{
@@ -159,8 +159,8 @@ export default function SettingsApp({ onThemeOverride, onClose, isSplitMode }) {
           >
             <RiCloseLine size={14} />
           </button>
-        </div>
-      )}
+        )}
+      </div>
 
       <div style={{ padding: '0px 20px' }}>
         <TimeSettings onThemeOverride={onThemeOverride} />
